@@ -14,6 +14,9 @@ import re
 app = Flask(__name__)
 app.config.from_object(settings)
 
+task_ids = []
+task_dict = {}
+
 def make_celery(app):
     celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'])
     celery.conf.update(app.config)
@@ -71,25 +74,33 @@ def airfoil(min_angle, max_angle, speed, job_id):
 
 @app.route("/af")
 def run_airfoil(min_angle=10, max_angle=20, speed=10):
+   global task_dict
+   task_ids = []
    min_angle = int(request.args.get("min_angle", min_angle))
    max_angle = int(request.args.get("max_angle", max_angle))
    speed = int(request.args.get("speed", speed))   	
-   task_ids = []
    job_id = str(uuid.uuid4())
    os.makedirs(job_id)
    for angle in xrange(min_angle, (max_angle+1)):
 	   res=airfoil.apply_async((angle, angle, speed, job_id))
 	   task_ids.append(res.task_id)
-   return jsonify(task_id = task_ids, job_id=job_id, minimum_angle=min_angle, maximum_angle=max_angle)
+   task_dict[job_id] = task_ids
+   return jsonify(job_id=job_id, minimum_angle=min_angle, maximum_angle=max_angle)
 
-@app.route("/af/result/<task_id>")
-def show_result_airfoil(task_id):
-	retval = airfoil.AsyncResult(task_id).get(timeout=1000000000.0)
-	ret = jsonify(mean_liftforce=retval['liftforce_mean'], 
-        speed=retval['speed'],
-        angle=retval['angle'],
-        job_id = retval['job_id'])
-	return ret
+@app.route("/af/result/<job_id>")
+def show_result_airfoil(job_id):
+       global task_dict
+       retvals = []
+       for task_id in task_dict[job_id]:
+               job_result = airfoil.AsyncResult(task_id).get(timeout=1000000000.0)               
+               print job_result
+               ret = {'mean_liftforce':job_result['liftforce_mean'],
+               'speed':job_result['speed'],
+               'angle':job_result['angle'],
+	       'task_id': task_id}
+
+               retvals.append(ret)
+       return jsonify(retvals=retvals)
 
 if __name__ == "__main__":
     port = int(environ.get("PORT", 5000))
