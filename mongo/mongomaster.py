@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import json
 
 def get_db():
-    client = MongoClient('192.168.0.4:12345')
+    client = MongoClient('192.168.0.4:27017')
     db = client.RequestsDB
     return db
 
@@ -25,6 +25,6 @@ def get_requests(db):
 if __name__ == "__main__":
 
     db = get_db() 
-    'add_requests(db)'
+    add_requests(db)
     print get_requests(db)
 
