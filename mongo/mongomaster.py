@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import json
 
 def get_db():
-    client = MongoClient('192.168.0.4:27017')
+    client = MongoClient('192.168.0.4:27017',replicaset='rs0')
     db = client.RequestsDB
     return db
 
@@ -22,8 +22,18 @@ def get_requests(db):
     	print(doc)
     return 0
 
-if __name__ == "__main__":
+def start_replica_set():
+	config ={'_id': 'rs0', 'members': [
+    		{'_id': 0, 'host': 'master:27017'},
+     		{'_id': 1, 'host': 'slave1:27017'},
+     		{'_id': 2, 'host': 'slave2:27017'}]}
 
+  	 c.admin.command("replSetInitiate", config)
+
+
+
+if __name__ == "__main__":
+    start_replica_set
     db = get_db() 
     add_requests(db)
     print get_requests(db)
