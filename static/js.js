@@ -3,29 +3,33 @@ $('document').ready(function() {
 
 
     function launchJob(min_angle, max_angle, n_angles, n_nodes, n_levels, num_samples, visc, speed, time) {
-	var url = 'http://130.238.29.134:5000/af?' +
-	'min_angle=' + min_angle +
-	'&max_angle=' + max_angle +
-	'&n_angles=' + n_angles +
-	'&n_nodes=' + n_nodes +
-	'&n_levels=' + n_levels +
-	'&num_samples=' + num_samples +
-	'&visc=' + visc +
-	'&speed=' + speed +
-	'&T=' + time
-	;	
+        //var url = 'http://130.238.29.134:5000/af?' +
+        var ip = location.host;
+        var url = 'http://' + ip +'/af?' +
+        'min_angle=' + min_angle +
+        '&max_angle=' + max_angle +
+        '&n_angles=' + n_angles +
+        '&n_nodes=' + n_nodes +
+        '&n_levels=' + n_levels +
+        '&num_samples=' + num_samples +
+        '&visc=' + visc +
+        '&speed=' + speed +
+        '&T=' + time
+        ;
 
         $.when(
             $.ajax({
-                url: url			
+                url: url
             })
         ).then(jobInfo);
     }
 
     function checkJob(jobId) {
+        var ip = location.host;
         $.when(
             $.ajax({
-                url: 'http://130.238.29.134:5000/af/result/' + jobId
+                //url: 'http://130.238.29.134:5000/af/result/' + jobId
+                url: 'http://'+ip+'/af/result/' + jobId
             })
         ).then(jobResult);
     }
